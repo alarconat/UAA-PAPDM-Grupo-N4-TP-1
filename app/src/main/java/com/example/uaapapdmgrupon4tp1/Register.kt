@@ -14,6 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.uaapapdmgrupon4tp1.ui.theme.UAAPAPDMGrupoN4TP1Theme
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 // Modelo de datos para la película
 data class Pelicula(
@@ -30,12 +32,19 @@ fun RegistroPeliculasScreen(modifier: Modifier = Modifier) {
     // Lista mutable de películas
     var peliculas by remember { mutableStateOf(listOf<Pelicula>()) }
 
-    Column(modifier = modifier.padding(16.dp)) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(start = 16.dp, end = 16.dp, top = 50.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         // Formulario de registro
         FormularioRegistro { pelicula ->
             peliculas = peliculas + pelicula
         }
-        Spacer(modifier = Modifier.height(16.dp))
+        //Spacer(modifier = Modifier.height(16.dp))
+        // Agregamos un Spacer para empujar el formulario más abajo
+        Spacer(modifier = Modifier.weight(1f)) // Empuja el contenido hacia abajo
 
         // Lista de películas con funcionalidad de eliminar
         ListaPeliculas(
@@ -63,6 +72,8 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
     var generoError by remember { mutableStateOf(false) }
     var duracionError by remember { mutableStateOf(false) }
     var posterUrlError by remember { mutableStateOf(false) }
+    var anioInvalido by remember { mutableStateOf(false) }
+    var duracionInvalida by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         // Campo Título
@@ -101,13 +112,19 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             onValueChange = {
                 anio = it
                 anioError = it.isEmpty() // Se actualiza el estado del error
+                anioInvalido = it.isNotEmpty() && it.toIntOrNull() == null // Verifica si no es un número válido
             },
             label = { Text("Año de lanzamiento") },
             modifier = Modifier.fillMaxWidth(),
-            isError = anioError // Muestra el campo en rojo si hay error
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number // Teclado solo numérico
+            ),
+            isError = anioError || anioInvalido // Muestra el campo en rojo si hay error
         )
         if (anioError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
+        } else if (anioInvalido) {
+            Text("Ingrese solo números enteros", color = MaterialTheme.colorScheme.error)
         }
 
         // Campo Género
@@ -131,13 +148,19 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             onValueChange = {
                 duracion = it
                 duracionError = it.isEmpty() // Se actualiza el estado del error
+                duracionInvalida = it.isNotEmpty() && it.toIntOrNull() == null // Verifica si no es un número válido
             },
             label = { Text("Duración (minutos)") },
             modifier = Modifier.fillMaxWidth(),
-            isError = duracionError // Muestra el campo en rojo si hay error
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number // Teclado solo numérico
+            ),
+            isError = duracionError || duracionInvalida // Muestra el campo en rojo si hay error
         )
         if (duracionError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
+        } else if (duracionInvalida) {
+            Text("Ingrese solo números enteros", color = MaterialTheme.colorScheme.error)
         }
 
         // Campo Poster URL
@@ -166,8 +189,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
                 duracionError = duracion.isEmpty()
                 posterUrlError = posterUrl.isEmpty()
 
-                // Si todos los campos están completos, agregar la película
-                if (!tituloError && !directorError && !anioError && !generoError && !duracionError && !posterUrlError) {
+                // Validación de año y duración
+                anioInvalido = anio.isNotEmpty() && anio.toIntOrNull() == null
+                duracionInvalida = duracion.isNotEmpty() && duracion.toIntOrNull() == null
+
+                // Si todos los campos están completos y los valores son válidos, agregar la película
+                if (!tituloError && !directorError && !anioError && !generoError && !duracionError && !posterUrlError && !anioInvalido && !duracionInvalida) {
                     onAddPelicula(
                         Pelicula(titulo, director, anio, genero, duracion, posterUrl)
                     )
@@ -210,21 +237,21 @@ fun TarjetaDePelicula(pelicula: Pelicula, onEliminarPelicula: (Pelicula) -> Unit
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(12.dp)
                 .fillMaxWidth()
         ) {
             // Título de la película en la parte superior, resaltado
             Text(
                 text = pelicula.titulo,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             // LazyRow para los detalles de la película debajo del título
             LazyRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp) // Espaciado entre los elementos
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item { InfoPelicula(titulo = "Director", valor = pelicula.director) }
                 item { InfoPelicula(titulo = "Año", valor = pelicula.anio) }
@@ -255,12 +282,12 @@ fun InfoPelicula(titulo: String, valor: String) {
     Column(
         modifier = Modifier
             .wrapContentWidth() // Ajustar el ancho al contenido
-            .padding(end = 16.dp), // Espacio al final de cada columna
+            .padding(end = 8.dp),
         verticalArrangement = Arrangement.Center
     ) {
-        Text(text = titulo, style = MaterialTheme.typography.titleSmall)
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(text = valor, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Text(text = titulo, style = MaterialTheme.typography.bodySmall)
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(text = valor, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
     }
 }
 
