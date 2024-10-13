@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
 fun NavigationHost(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(navController = navController, startDestination = "home") {
         composable("home") { HomeScreen(navController) }
-        composable("register") { RegisterScreen() }
+        composable("register") { RegistroPeliculasScreen() } // Cambia aquí la referencia
     }
 }
 
@@ -65,7 +65,7 @@ fun HomeScreen(navController: NavHostController) {
                 .padding(top = 150.dp)
                 .padding(start = 100.dp)
         )
-        // Botón que lleva a la pantalla de register (debe cambiarse para que mande a la lista y la lista debe tener el boton de agregar, eliminar  y ver registro)
+        // Botón que lleva a la pantalla de register
         Button(
             onClick = { navController.navigate("register") },
             modifier = Modifier
