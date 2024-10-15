@@ -16,6 +16,25 @@ import androidx.compose.ui.unit.dp
 import com.example.uaapapdmgrupon4tp1.ui.theme.UAAPAPDMGrupoN4TP1Theme
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.Composable
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
+
 
 // Modelo de datos para la película
 data class Pelicula(
@@ -178,6 +197,8 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
         }
 
+        AsyncPicture("https://static.fundacion-affinity.org/cdn/farfuture/PVbbIC-0M9y4fPbbCsdvAD8bcjjtbFc0NSP3lRwlWcE/mtime:1643275542/sites/default/files/los-10-sonidos-principales-del-perro.jpg")
+
         // Botón para guardar la película
         Button(
             onClick = {
@@ -303,6 +324,47 @@ fun PeliculaItem(pelicula: Pelicula) {
         Text(text = "Género: ${pelicula.genero}", style = MaterialTheme.typography.bodyMedium)
         Text(text = "Duración: ${pelicula.duracion} minutos", style = MaterialTheme.typography.bodyMedium)
         Text(text = "Poster URL: ${pelicula.posterUrl}", style = MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+fun AsyncPicture(
+    imageUrl: String
+) {
+    var isLoading by remember { mutableStateOf(true) }
+    var isError by remember { mutableStateOf(false) }
+    var isSuccess by remember { mutableStateOf(false) }
+    Box(
+        //modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(modifier = Modifier
+            .size(230.dp)
+            .background(MaterialTheme.colorScheme.primary)
+        ) {
+            val imagePainter = rememberAsyncImagePainter(
+                model = imageUrl,
+                onState = { state ->
+                    isLoading = state is AsyncImagePainter.State.Loading
+                    isError = state is AsyncImagePainter.State.Error
+                    isSuccess = state is AsyncImagePainter.State.Success
+                }
+            )
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .align(Alignment.Center),
+                    color = Color.White
+                )
+            }
+            Image(
+                modifier = Modifier.fillMaxSize(),
+                painter = imagePainter,
+                contentScale = ContentScale.Crop,
+                contentDescription = null
+            )
+        }
     }
 }
 
