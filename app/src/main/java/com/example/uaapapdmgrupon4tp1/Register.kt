@@ -26,21 +26,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import coil3.compose.AsyncImagePainter
-import coil3.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.example.uaapapdmgrupon4tp1.ui.theme.AppPeliculasTheme
 
 
@@ -77,7 +82,8 @@ fun RegistroPeliculasScreen(navController: NavHostController, modifier: Modifier
         var peliculas by remember { mutableStateOf(listOf<Pelicula>()) }
         Surface(
             color = MaterialTheme.colorScheme.background,
-            modifier = modifier.fillMaxSize()
+            modifier = modifier
+                .fillMaxSize()
         ) {
             Column(
                 modifier = Modifier
@@ -127,7 +133,7 @@ fun RegistroPeliculasScreen(navController: NavHostController, modifier: Modifier
                 }
 
                 Spacer(modifier = Modifier.weight(1f)) // Empuja el contenido hacia abajo
-
+                //El LazyColumn ya cuenta con un verticalScroll
                 // Lista de películas con funcionalidad de eliminar
                 ListaPeliculas(
                     peliculas = peliculas,
@@ -298,7 +304,7 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
         }
 
-        AsyncPicture("https://static.fundacion-affinity.org/cdn/farfuture/PVbbIC-0M9y4fPbbCsdvAD8bcjjtbFc0NSP3lRwlWcE/mtime:1643275542/sites/default/files/los-10-sonidos-principales-del-perro.jpg")
+        //AsyncPicture(posterUrl)
 
         // Botón para guardar la película
         Button(
@@ -344,7 +350,8 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
 @Composable
 fun ListaPeliculas(peliculas: List<Pelicula>, onEliminarPelicula: (Pelicula) -> Unit, modifier: Modifier = Modifier) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(8.dp) // Espaciado entre las tarjetas
     ) {
         items(peliculas) { pelicula ->
@@ -388,7 +395,7 @@ fun TarjetaDePelicula(pelicula: Pelicula, onEliminarPelicula: (Pelicula) -> Unit
             Spacer(modifier = Modifier.height(8.dp))
 
             // Mostrar imagen del póster
-            AsyncPicture(imageUrl = pelicula.posterUrl)
+            AsyncPicture(imageUrl = "https://static.fundacion-affinity.org/cdn/farfuture/PVbbIC-0M9y4fPbbCsdvAD8bcjjtbFc0NSP3lRwlWcE/mtime:1643275542/sites/default/files/los-10-sonidos-principales-del-perro.jpg")
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -444,19 +451,13 @@ fun AsyncPicture(
     var isLoading by remember { mutableStateOf(true) }
     var isError by remember { mutableStateOf(false) }
     var isSuccess by remember { mutableStateOf(false) }
-
-    val backgroundColor = MaterialTheme.colorScheme.surface
-    val progressColor = MaterialTheme.colorScheme.primary
-    val errorColor = MaterialTheme.colorScheme.error
-
     Box(
+        modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(230.dp)
-                .background(backgroundColor)
-                .background(backgroundColor) // Aplica el color de fondo más oscuro
+        Box(modifier = Modifier
+            .size(230.dp)
+            .background(MaterialTheme.colorScheme.primary)
         ) {
             val imagePainter = rememberAsyncImagePainter(
                 model = imageUrl,
@@ -466,18 +467,23 @@ fun AsyncPicture(
                     isSuccess = state is AsyncImagePainter.State.Success
                 }
             )
-
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier
                         .size(80.dp)
                         .align(Alignment.Center),
-                    color = progressColor
+                    color = Color.White
                 )
             }
-            }
+            Image(
+                modifier = Modifier.fillMaxSize(),
+                painter = imagePainter,
+                contentScale = ContentScale.Crop,
+                contentDescription = null
+            )
         }
     }
+}
 
 
 
