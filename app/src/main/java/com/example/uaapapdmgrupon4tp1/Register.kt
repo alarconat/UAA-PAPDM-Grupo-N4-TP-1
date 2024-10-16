@@ -1,5 +1,11 @@
 package com.example.uaapapdmgrupon4tp1
 
+import android.os.Build
+import androidx.compose.material3.MaterialTheme
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -13,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.uaapapdmgrupon4tp1.ui.theme.UAAPAPDMGrupoN4TP1Theme
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,20 +26,37 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.layout.ContentScale
-import coil3.compose.AsyncImage
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import com.example.uaapapdmgrupon4tp1.ui.theme.AppPeliculasTheme
 
+
+class Register : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        setContent {
+            val navController = rememberNavController()
+            AppPeliculasTheme {
+                RegistroPeliculasScreen(navController)
+            }
+        }
+    }
+}
 
 // Modelo de datos para la película
 data class Pelicula(
@@ -47,33 +69,81 @@ data class Pelicula(
 )
 
 @Composable
-fun RegistroPeliculasScreen(modifier: Modifier = Modifier) {
-    // Lista mutable de películas
-    var peliculas by remember { mutableStateOf(listOf<Pelicula>()) }
+fun RegistroPeliculasScreen(navController: NavHostController, modifier: Modifier = Modifier) {
+    // Estado del tema oscuro
+    var isDarkTheme by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, top = 50.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Formulario de registro
-        FormularioRegistro { pelicula ->
-            peliculas = peliculas + pelicula
-        }
-        //Spacer(modifier = Modifier.height(16.dp))
-        // Agregamos un Spacer para empujar el formulario más abajo
-        Spacer(modifier = Modifier.weight(1f)) // Empuja el contenido hacia abajo
+    AppPeliculasTheme(darkTheme = isDarkTheme) {
+        var peliculas by remember { mutableStateOf(listOf<Pelicula>()) }
+        Surface(
+            color = MaterialTheme.colorScheme.background,
+            modifier = modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 16.dp, end = 16.dp, top = 50.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Barra superior
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Botón para retroceder
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_atras),
+                            contentDescription = "Atrás"
+                        )
+                    }
 
-        // Lista de películas con funcionalidad de eliminar
-        ListaPeliculas(
-            peliculas = peliculas,
-            onEliminarPelicula = { peliculaAEliminar ->
-                peliculas = peliculas.filter { it != peliculaAEliminar }
+                    // Tema oscuro/claro
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // Icono según el tema
+                        Icon(
+                            painter = painterResource(id = if (isDarkTheme) R.drawable.ic_oscuro else R.drawable.ic_claro),
+                            contentDescription = if (isDarkTheme) "Tema Oscuro" else "Tema Claro",
+                            modifier = Modifier.size(30.dp) // Ajusta el tamaño según tus necesidades
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el icono y el switch
+
+                        Switch(
+                            checked = isDarkTheme,
+                            onCheckedChange = { isDarkTheme = it }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Formulario de registro
+                FormularioRegistro { pelicula ->
+                    peliculas = peliculas + pelicula
+                }
+
+                Spacer(modifier = Modifier.weight(1f)) // Empuja el contenido hacia abajo
+
+                // Lista de películas con funcionalidad de eliminar
+                ListaPeliculas(
+                    peliculas = peliculas,
+                    onEliminarPelicula = { peliculaAEliminar ->
+                        peliculas = peliculas.filter { it != peliculaAEliminar }
+                    }
+                )
             }
-        )
+        }
     }
 }
+
+
+
+
+
 
 @Composable
 fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
@@ -104,7 +174,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             },
             label = { Text("Título") },
             modifier = Modifier.fillMaxWidth(),
-            isError = tituloError // Muestra el campo en rojo si hay error
+            isError = tituloError, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            )
         )
         if (tituloError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -119,7 +194,13 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             },
             label = { Text("Director") },
             modifier = Modifier.fillMaxWidth(),
-            isError = directorError // Muestra el campo en rojo si hay error
+            isError = directorError, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+            errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+        )
+
         )
         if (directorError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -138,7 +219,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Number // Teclado solo numérico
             ),
-            isError = anioError || anioInvalido // Muestra el campo en rojo si hay error
+            isError = anioError || anioInvalido, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            ) // Muestra el campo en rojo si hay error
         )
         if (anioError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -155,7 +241,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             },
             label = { Text("Género") },
             modifier = Modifier.fillMaxWidth(),
-            isError = generoError // Muestra el campo en rojo si hay error
+            isError = generoError, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            ) // Muestra el campo en rojo si hay error
         )
         if (generoError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -174,7 +265,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Number // Teclado solo numérico
             ),
-            isError = duracionError || duracionInvalida // Muestra el campo en rojo si hay error
+            isError = duracionError || duracionInvalida, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            ) // Muestra el campo en rojo si hay error
         )
         if (duracionError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -191,7 +287,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             },
             label = { Text("URL del poster") },
             modifier = Modifier.fillMaxWidth(),
-            isError = posterUrlError // Muestra el campo en rojo si hay error
+            isError = posterUrlError, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            )
         )
         if (posterUrlError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -228,6 +329,10 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
                     posterUrl = ""
                 }
             },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary, // Color de fondo
+                contentColor = MaterialTheme.colorScheme.onPrimary // Color del texto
+            ),
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("Guardar Película")
@@ -278,8 +383,12 @@ fun TarjetaDePelicula(pelicula: Pelicula, onEliminarPelicula: (Pelicula) -> Unit
                 item { InfoPelicula(titulo = "Año", valor = pelicula.anio) }
                 item { InfoPelicula(titulo = "Género", valor = pelicula.genero) }
                 item { InfoPelicula(titulo = "Duración", valor = "${pelicula.duracion} min") }
-                item { InfoPelicula(titulo = "Poster URL", valor = pelicula.posterUrl) }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Mostrar imagen del póster
+            AsyncPicture(imageUrl = pelicula.posterUrl)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -297,6 +406,7 @@ fun TarjetaDePelicula(pelicula: Pelicula, onEliminarPelicula: (Pelicula) -> Unit
         }
     }
 }
+
 
 @Composable
 fun InfoPelicula(titulo: String, valor: String) {
@@ -334,13 +444,19 @@ fun AsyncPicture(
     var isLoading by remember { mutableStateOf(true) }
     var isError by remember { mutableStateOf(false) }
     var isSuccess by remember { mutableStateOf(false) }
+
+    val backgroundColor = MaterialTheme.colorScheme.surface
+    val progressColor = MaterialTheme.colorScheme.primary
+    val errorColor = MaterialTheme.colorScheme.error
+
     Box(
-        //modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Box(modifier = Modifier
-            .size(230.dp)
-            .background(MaterialTheme.colorScheme.primary)
+        Box(
+            modifier = Modifier
+                .size(230.dp)
+                .background(backgroundColor)
+                .background(backgroundColor) // Aplica el color de fondo más oscuro
         ) {
             val imagePainter = rememberAsyncImagePainter(
                 model = imageUrl,
@@ -350,28 +466,26 @@ fun AsyncPicture(
                     isSuccess = state is AsyncImagePainter.State.Success
                 }
             )
+
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier
                         .size(80.dp)
                         .align(Alignment.Center),
-                    color = Color.White
+                    color = progressColor
                 )
             }
-            Image(
-                modifier = Modifier.fillMaxSize(),
-                painter = imagePainter,
-                contentScale = ContentScale.Crop,
-                contentDescription = null
-            )
+            }
         }
     }
-}
+
+
 
 @Preview(showBackground = true)
 @Composable
 fun RegistroPeliculasScreenPreview() {
-    UAAPAPDMGrupoN4TP1Theme {
-        RegistroPeliculasScreen()
+    AppPeliculasTheme {
+        // Pasar un navController falso o simplemente dejarlo como null
+        RegistroPeliculasScreen(rememberNavController())
     }
 }
