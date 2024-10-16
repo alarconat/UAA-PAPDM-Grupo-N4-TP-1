@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 val DarkColorPalette = darkColorScheme(
-    primary = Color(0xFFBB86FC),
+    primary = Color(0xFF904A46),
     secondary = Color(0xFF03DAC6),
     background = Color(0xFF121212), // Fondo oscuro
     surface = Color(0xFF121212),    // Superficies oscuras
@@ -38,7 +38,7 @@ val LightColorPalette = lightColorScheme(
 )
 
 
-private val lightScheme = lightColorScheme(
+val lightScheme = lightColorScheme(
     primary = primaryLight,
     onPrimary = onPrimaryLight,
     primaryContainer = primaryContainerLight,
@@ -279,18 +279,22 @@ val unspecified_scheme = ColorFamily(
 )
 
 @Composable
-fun UAAPAPDMGrupoN4TP1Theme(
-    darkTheme: Boolean = isSystemInDarkTheme(), // Detectar modo oscuro por defecto
+fun AppPeliculasTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) {
-        DarkColorPalette
-    } else {
-        LightColorPalette
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> darkScheme
+        else -> lightScheme
     }
 
     MaterialTheme(
-        colorScheme = colors,
+        colorScheme = colorScheme,
         typography = AppTypography,
         content = content
     )

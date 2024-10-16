@@ -2,6 +2,7 @@ package com.example.uaapapdmgrupon4tp1.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
+
 val primaryLight = Color(0xFF904A46)
 val onPrimaryLight = Color(0xFFFFFFFF)
 val primaryContainerLight = Color(0xFFFFDAD7)
@@ -37,6 +38,7 @@ val surfaceContainerLowLight = Color(0xFFFFF0EF)
 val surfaceContainerLight = Color(0xFFFCEAE8)
 val surfaceContainerHighLight = Color(0xFFF6E4E2)
 val surfaceContainerHighestLight = Color(0xFFF1DEDD)
+val btn = Color(0xFFBA1A1A)
 
 val primaryLightMediumContrast = Color(0xFF6E2F2C)
 val onPrimaryLightMediumContrast = Color(0xFFFFFFFF)

@@ -1,6 +1,11 @@
 package com.example.uaapapdmgrupon4tp1
 
 import android.os.Build
+import androidx.compose.material3.MaterialTheme
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,7 +19,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.uaapapdmgrupon4tp1.ui.theme.UAAPAPDMGrupoN4TP1Theme
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,20 +31,32 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import coil3.compose.AsyncImage
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
-import com.example.uaapapdmgrupon4tp1.ui.theme.AppTypography
-import com.example.uaapapdmgrupon4tp1.ui.theme.DarkColorPalette
-import com.example.uaapapdmgrupon4tp1.ui.theme.LightColorPalette
+import com.example.uaapapdmgrupon4tp1.ui.theme.AppPeliculasTheme
 
+
+class Register : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        setContent {
+            val navController = rememberNavController()
+            AppPeliculasTheme {
+                RegistroPeliculasScreen(navController)
+            }
+        }
+    }
+}
 
 // Modelo de datos para la película
 data class Pelicula(
@@ -53,36 +69,14 @@ data class Pelicula(
 )
 
 @Composable
-fun AppPeliculasTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorPalette
-        else -> LightColorPalette
-    }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = AppTypography,
-        content = content
-    )
-}
-
-@Composable
-fun RegistroPeliculasScreen(modifier: Modifier = Modifier) {
+fun RegistroPeliculasScreen(navController: NavHostController, modifier: Modifier = Modifier) {
     // Estado del tema oscuro
     var isDarkTheme by remember { mutableStateOf(false) }
 
     AppPeliculasTheme(darkTheme = isDarkTheme) {
         var peliculas by remember { mutableStateOf(listOf<Pelicula>()) }
         Surface(
-            color = MaterialTheme.colorScheme.background, // Color de fondo basado en el tema
+            color = MaterialTheme.colorScheme.background,
             modifier = modifier.fillMaxSize()
         ) {
             Column(
@@ -91,17 +85,40 @@ fun RegistroPeliculasScreen(modifier: Modifier = Modifier) {
                     .padding(start = 16.dp, end = 16.dp, top = 50.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Tema oscuro/claro
-                Switch(
-                    checked = isDarkTheme,
-                    onCheckedChange = { isDarkTheme = it },
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-                Text(
-                    text = if (isDarkTheme) "Tema Oscuro" else "Tema Claro",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
+                // Barra superior
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Botón para retroceder
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_atras),
+                            contentDescription = "Atrás"
+                        )
+                    }
+
+                    // Tema oscuro/claro
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        // Icono según el tema
+                        Icon(
+                            painter = painterResource(id = if (isDarkTheme) R.drawable.ic_oscuro else R.drawable.ic_claro),
+                            contentDescription = if (isDarkTheme) "Tema Oscuro" else "Tema Claro",
+                            modifier = Modifier.size(30.dp) // Ajusta el tamaño según tus necesidades
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp)) // Espacio entre el icono y el switch
+
+                        Switch(
+                            checked = isDarkTheme,
+                            onCheckedChange = { isDarkTheme = it }
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Formulario de registro
@@ -122,6 +139,9 @@ fun RegistroPeliculasScreen(modifier: Modifier = Modifier) {
         }
     }
 }
+
+
+
 
 
 
@@ -154,7 +174,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             },
             label = { Text("Título") },
             modifier = Modifier.fillMaxWidth(),
-            isError = tituloError // Muestra el campo en rojo si hay error
+            isError = tituloError, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            )
         )
         if (tituloError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -169,7 +194,13 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             },
             label = { Text("Director") },
             modifier = Modifier.fillMaxWidth(),
-            isError = directorError // Muestra el campo en rojo si hay error
+            isError = directorError, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+            errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+        )
+
         )
         if (directorError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -188,7 +219,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Number // Teclado solo numérico
             ),
-            isError = anioError || anioInvalido // Muestra el campo en rojo si hay error
+            isError = anioError || anioInvalido, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            ) // Muestra el campo en rojo si hay error
         )
         if (anioError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -205,7 +241,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             },
             label = { Text("Género") },
             modifier = Modifier.fillMaxWidth(),
-            isError = generoError // Muestra el campo en rojo si hay error
+            isError = generoError, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            ) // Muestra el campo en rojo si hay error
         )
         if (generoError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -224,7 +265,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Number // Teclado solo numérico
             ),
-            isError = duracionError || duracionInvalida // Muestra el campo en rojo si hay error
+            isError = duracionError || duracionInvalida, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            ) // Muestra el campo en rojo si hay error
         )
         if (duracionError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -241,7 +287,12 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
             },
             label = { Text("URL del poster") },
             modifier = Modifier.fillMaxWidth(),
-            isError = posterUrlError // Muestra el campo en rojo si hay error
+            isError = posterUrlError, // Muestra el campo en rojo si hay error
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.primaryContainer, // Color de fondo cuando está enfocado
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer, // Color de fondo cuando no está enfocado
+                errorContainerColor = Color.Red.copy(alpha = 0.1f) // Color de fondo cuando hay un error
+            )
         )
         if (posterUrlError) {
             Text("Este campo no puede quedar vacío", color = MaterialTheme.colorScheme.error)
@@ -433,7 +484,8 @@ fun AsyncPicture(
 @Preview(showBackground = true)
 @Composable
 fun RegistroPeliculasScreenPreview() {
-    UAAPAPDMGrupoN4TP1Theme {
-        RegistroPeliculasScreen()
+    AppPeliculasTheme {
+        // Pasar un navController falso o simplemente dejarlo como null
+        RegistroPeliculasScreen(rememberNavController())
     }
 }

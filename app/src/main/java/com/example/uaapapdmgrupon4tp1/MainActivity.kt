@@ -1,6 +1,8 @@
 package com.example.uaapapdmgrupon4tp1
 
 import android.os.Bundle
+import androidx.compose.material3.MaterialTheme
+
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -22,14 +24,14 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.uaapapdmgrupon4tp1.ui.theme.UAAPAPDMGrupoN4TP1Theme
+import com.example.uaapapdmgrupon4tp1.ui.theme.AppPeliculasTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            UAAPAPDMGrupoN4TP1Theme {
+            AppPeliculasTheme {
                 val navController = rememberNavController()
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     NavigationHost(navController = navController, modifier = Modifier.padding(innerPadding))
@@ -43,7 +45,7 @@ class MainActivity : ComponentActivity() {
 fun NavigationHost(navController: NavHostController, modifier: Modifier = Modifier) {
     NavHost(navController = navController, startDestination = "home") {
         composable("home") { HomeScreen(navController) }
-        composable("register") { RegistroPeliculasScreen() } // Cambia aquí la referencia
+        composable("register") { RegistroPeliculasScreen(navController) } // Cambia aquí la referencia
     }
 }
 
@@ -83,7 +85,7 @@ fun HomeScreen(navController: NavHostController) {
 @Preview(showBackground = true)
 @Composable
 fun HomeScreenPreview() {
-    UAAPAPDMGrupoN4TP1Theme {
+    AppPeliculasTheme {
         HomeScreen(rememberNavController())
     }
 }
