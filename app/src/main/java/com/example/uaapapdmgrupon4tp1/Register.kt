@@ -1,5 +1,6 @@
 package com.example.uaapapdmgrupon4tp1
 
+import android.os.Build
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -31,9 +33,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import com.example.uaapapdmgrupon4tp1.ui.theme.AppTypography
+import com.example.uaapapdmgrupon4tp1.ui.theme.DarkColorPalette
+import com.example.uaapapdmgrupon4tp1.ui.theme.LightColorPalette
 
 
 // Modelo de datos para la película
@@ -47,33 +53,77 @@ data class Pelicula(
 )
 
 @Composable
-fun RegistroPeliculasScreen(modifier: Modifier = Modifier) {
-    // Lista mutable de películas
-    var peliculas by remember { mutableStateOf(listOf<Pelicula>()) }
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(start = 16.dp, end = 16.dp, top = 50.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Formulario de registro
-        FormularioRegistro { pelicula ->
-            peliculas = peliculas + pelicula
+fun AppPeliculasTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        //Spacer(modifier = Modifier.height(16.dp))
-        // Agregamos un Spacer para empujar el formulario más abajo
-        Spacer(modifier = Modifier.weight(1f)) // Empuja el contenido hacia abajo
+        darkTheme -> DarkColorPalette
+        else -> LightColorPalette
+    }
 
-        // Lista de películas con funcionalidad de eliminar
-        ListaPeliculas(
-            peliculas = peliculas,
-            onEliminarPelicula = { peliculaAEliminar ->
-                peliculas = peliculas.filter { it != peliculaAEliminar }
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = AppTypography,
+        content = content
+    )
+}
+
+@Composable
+fun RegistroPeliculasScreen(modifier: Modifier = Modifier) {
+    // Estado del tema oscuro
+    var isDarkTheme by remember { mutableStateOf(false) }
+
+    AppPeliculasTheme(darkTheme = isDarkTheme) {
+        var peliculas by remember { mutableStateOf(listOf<Pelicula>()) }
+        Surface(
+            color = MaterialTheme.colorScheme.background, // Color de fondo basado en el tema
+            modifier = modifier.fillMaxSize()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 16.dp, end = 16.dp, top = 50.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Tema oscuro/claro
+                Switch(
+                    checked = isDarkTheme,
+                    onCheckedChange = { isDarkTheme = it },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+                Text(
+                    text = if (isDarkTheme) "Tema Oscuro" else "Tema Claro",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Formulario de registro
+                FormularioRegistro { pelicula ->
+                    peliculas = peliculas + pelicula
+                }
+
+                Spacer(modifier = Modifier.weight(1f)) // Empuja el contenido hacia abajo
+
+                // Lista de películas con funcionalidad de eliminar
+                ListaPeliculas(
+                    peliculas = peliculas,
+                    onEliminarPelicula = { peliculaAEliminar ->
+                        peliculas = peliculas.filter { it != peliculaAEliminar }
+                    }
+                )
             }
-        )
+        }
     }
 }
+
+
 
 @Composable
 fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
@@ -228,6 +278,10 @@ fun FormularioRegistro(onAddPelicula: (Pelicula) -> Unit) {
                     posterUrl = ""
                 }
             },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary, // Color de fondo
+                contentColor = MaterialTheme.colorScheme.onPrimary // Color del texto
+            ),
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("Guardar Película")
@@ -278,8 +332,12 @@ fun TarjetaDePelicula(pelicula: Pelicula, onEliminarPelicula: (Pelicula) -> Unit
                 item { InfoPelicula(titulo = "Año", valor = pelicula.anio) }
                 item { InfoPelicula(titulo = "Género", valor = pelicula.genero) }
                 item { InfoPelicula(titulo = "Duración", valor = "${pelicula.duracion} min") }
-                item { InfoPelicula(titulo = "Poster URL", valor = pelicula.posterUrl) }
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Mostrar imagen del póster
+            AsyncPicture(imageUrl = pelicula.posterUrl)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -297,6 +355,7 @@ fun TarjetaDePelicula(pelicula: Pelicula, onEliminarPelicula: (Pelicula) -> Unit
         }
     }
 }
+
 
 @Composable
 fun InfoPelicula(titulo: String, valor: String) {
@@ -334,13 +393,19 @@ fun AsyncPicture(
     var isLoading by remember { mutableStateOf(true) }
     var isError by remember { mutableStateOf(false) }
     var isSuccess by remember { mutableStateOf(false) }
+
+    val backgroundColor = MaterialTheme.colorScheme.surface
+    val progressColor = MaterialTheme.colorScheme.primary
+    val errorColor = MaterialTheme.colorScheme.error
+
     Box(
-        //modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Box(modifier = Modifier
-            .size(230.dp)
-            .background(MaterialTheme.colorScheme.primary)
+        Box(
+            modifier = Modifier
+                .size(230.dp)
+                .background(backgroundColor)
+                .background(backgroundColor) // Aplica el color de fondo más oscuro
         ) {
             val imagePainter = rememberAsyncImagePainter(
                 model = imageUrl,
@@ -350,23 +415,20 @@ fun AsyncPicture(
                     isSuccess = state is AsyncImagePainter.State.Success
                 }
             )
+
             if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier
                         .size(80.dp)
                         .align(Alignment.Center),
-                    color = Color.White
+                    color = progressColor
                 )
             }
-            Image(
-                modifier = Modifier.fillMaxSize(),
-                painter = imagePainter,
-                contentScale = ContentScale.Crop,
-                contentDescription = null
-            )
+            }
         }
     }
-}
+
+
 
 @Preview(showBackground = true)
 @Composable
